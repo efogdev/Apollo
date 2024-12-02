@@ -4,10 +4,6 @@ from typing import Dict, List, Union
 from .projectors import build_mm_projector
 from ..utils import initialize_weights
 
-from .perciver_idefics import Idefics2PerceiverResampler
-from .flamino_perciver import FlamingoResampler
-from .attentive_pooler import AttentivePooler
-from .average_pooler import AveragePooler
 from .perciver import PerceiverResampler
 from transformers import PreTrainedModel, PretrainedConfig, AutoConfig, AutoModel
 import torch.nn.functional as F
@@ -105,10 +101,6 @@ class Connector(PreTrainedModel):
     def _build_resampler(self, resampler_type: str, config: ConnectorConfig):
         resampler_mapping = {
             'perciver': PerceiverResampler,
-            'flamingo_perciver': FlamingoResampler,
-            'idefics2_perciver': Idefics2PerceiverResampler,
-            'att_pool': AttentivePooler,
-            'avg': AveragePooler
         }
         return resampler_mapping.get(resampler_type, resampler_mapping['perciver'])(config)
     
