@@ -7,13 +7,7 @@ import os
 from transformers import AutoConfig, PretrainedConfig, PreTrainedModel
 from .hybrid_encoder import HybridVisionTower
 from .siglip_encoder import SiglipVisionTower
-from .intern_encoder import InternVisionTower
-from .dino_encoder import DinoVisionTower
-from .languagebind_encoder import LanguageBindImageTower, LanguageBindVideoTower
-from .videomae_encoder import MAEVideoTower
 from .internvideo_encoder import InternVideoTower
-
-from .vjepa_encoder import VJepaVisionTower
 
 
 def build_single_vision_tower(encoder_name, encoder_path, config: PretrainedConfig
