@@ -1,5 +1,4 @@
 import os, re, sys
-
 import spaces
 import traceback
 import gradio as gr
@@ -25,6 +24,13 @@ from apollo.mm_utils import (
 )
 from decord import cpu, VideoReader
 from huggingface_hub import snapshot_download
+
+
+if not torch.cuda.is_available():
+    raise RuntimeError("CUDA is not available. Ensure the environment has GPU support.")
+else:
+    print(f"Using CUDA device: {torch.cuda.get_device_name(0)}")
+
 
 token = os.getenv("HUGGINGFACE_API_KEY")
 
