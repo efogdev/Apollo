@@ -1,6 +1,6 @@
 huggingface_hub==0.25.1
+torch===2.1.2
 ezcolorlog
-torch==2.1.2
 numpy
 torchvision
 transformers==4.44.0
@@ -24,14 +24,10 @@ einops-exts==0.0.4
 timm==0.9.16
 decord
 ninja
-deepspeed==0.13.5
 protobuf
 iopath
 num2words
-ipdb
 opencv-python
 s2wrapper@git+https://github.com/bfshi/scaling_on_scales
 easydict
 flash-attn
-torch===2.1.2
-torchvision==0.16.2
