@@ -26,6 +26,7 @@ from apollo.mm_utils import (
 from decord import cpu, VideoReader
 from huggingface_hub import snapshot_download
 
+token = os.getenv("HUGGINGFACE_API_KEY")
 
 
 title_markdown = """
@@ -65,8 +66,8 @@ plum_color = gr.themes.colors.Color(
 )
 
 
-model_path = snapshot_download("Apollo-LMMs/Apollo-3B-chatty", repo_type="model")
-data_path = snapshot_download("Apollo-LMMs/examples", repo_type="dataset")
+model_path = snapshot_download("Apollo-LMMs/Apollo-3B-chatty", repo_type="model", use_auth_token=token)
+data_path = snapshot_download("Apollo-LMMs/examples", repo_type="dataset", use_auth_token=token)
 
 class Chat:
     def __init__(self):
