@@ -28,42 +28,10 @@ def build_single_vision_tower(encoder_name, encoder_path, config: PretrainedConf
         vision_tower_arch if vision_tower_arch is not None else encoder_path
     )
     
-    use_s2 = getattr(config, 's2', False)
-    if "internimage" in encoder_name:
-        if hasattr(config, 'drop_path_rate'):
-            vision_tower = InternVisionTower(
-                encoder_path, config=config, drop_path_rate=config.drop_path_rate)
-        else:
-            vision_tower = InternVisionTower(
-                encoder_path, config=config, drop_path_rate=0.0)
-    elif "radio" in encoder_name:
-        vision_tower = RADIOVisionTower(encoder_path, config)
-    elif "languagebind" in encoder_name:
-        if "video" in encoder_name:
-            #import ipdb; ipdb.set_trace()
-            vision_tower = LanguageBindVideoTower(encoder_path, config, vision_tower_cfg)
-        elif "image" in encoder_name:
-            vision_tower = LanguageBindImageTower(encoder_path, config, vision_tower_cfg)
-    elif "clip" in encoder_name:
-        if use_s2:
-            vision_tower = CLIPVisionTowerS2(encoder_path, config, vision_tower_cfg)
-        else:
-            vision_tower = CLIPVisionTower(encoder_path, config, vision_tower_cfg)
-    elif "siglip" in encoder_name:
-        if use_s2:
-            vision_tower = SiglipVisionTowerS2(encoder_path, config, vision_tower_cfg)
-        else:
-            vision_tower = SiglipVisionTower(encoder_path, config, vision_tower_cfg)
-    elif "dino" in encoder_name:
-        vision_tower = DinoVisionTower(encoder_path, config, vision_tower_cfg)        
-    elif "vjepa" in encoder_name:
-        vision_tower = VJepaVisionTower(encoder_path, config, vision_tower_cfg)
-    elif "ijepa" in encoder_name:
-        vision_tower = IJepaVisionTower(encoder_path, config)
+    if "siglip" in encoder_name:
+        vision_tower = SiglipVisionTower(encoder_path, config, vision_tower_cfg)
     elif "internvideo" in encoder_name:
         vision_tower = InternVideoTower(encoder_path, config, vision_tower_cfg)
-    elif "videomae" in encoder_name:
-        vision_tower = MAEVideoTower(encoder_path, config, vision_tower_cfg)
     else:
         raise ValueError(f"Unknown vision tower: {encoder_name}")
 
@@ -73,7 +41,6 @@ def build_single_vision_tower(encoder_name, encoder_path, config: PretrainedConf
 def build_vision_tower(
     model_name_or_path: str, config: PretrainedConfig
 ) -> PreTrainedModel:
-    register_encoders()
     ## skip vision tower instantiation
     if config.resume_path:
         hybrid_tower_cfg = AutoConfig.from_pretrained(model_name_or_path, trust_remote_code=True)
@@ -127,103 +94,3 @@ def add_encoder(encoder):
     assert "+" not in encoder.encoder_name, "Dataset name cannot include symbol '+'."
     ENCODERS.update({encoder.encoder_name: encoder})
 
-
-
-def register_encoders():
-    # Image
-    clip_l_p16_384 = Encoder(
-        encoder_name='clip-large-patch14-336',
-        encoder_type='image',
-        encoder_path='./model_zoo/CLIP/clip-vit-large-patch14-336',
-    )
-    add_encoder(clip_l_p16_384)
-
-    siglip_so400m_p14_384 = Encoder(
-        encoder_name='siglip-so400m-patch14-384',
-        encoder_type='image',
-        encoder_path='./model_zoo/SigLip/siglip-so400m-patch14-384',
-    )
-    add_encoder(siglip_so400m_p14_384)
-
-    siglip_l_p16_384 = Encoder(
-        encoder_name='siglip-large-patch16-384',
-        encoder_type='image',
-        encoder_path='./model_zoo/SigLip/siglip-large-patch16-384',
-    )
-    add_encoder(siglip_l_p16_384)
-
-    siglip_b_p16_384 = Encoder(
-        encoder_name='siglip-base-patch16-384',
-        encoder_type='image',
-        encoder_path='./model_zoo/SigLip/siglip-base-patch16-384',
-    )
-    add_encoder(siglip_b_p16_384)
-
-    languagebind_image = Encoder(
-        encoder_name='languagebind-image',
-        encoder_type='image',
-        encoder_path='./model_zoo/LanguageBind/LanguageBind_Image_Encoder',
-        processor_path='./model_zoo/LanguageBind/LanguageBind_Image_Encoder',
-    )
-    add_encoder(languagebind_image)
-
-    dinov2_l = Encoder(
-        encoder_name='dinov2-l',
-        encoder_type='image',
-        encoder_path='./model_zoo/DINO/dinov2-large',
-        processor_path='./model_zoo/DINO/dinov2-large',
-    )
-    add_encoder(dinov2_l)
-
-
-    # Video
-
-    vjepa_h_p16_384 = Encoder(
-        encoder_name='vjepa_vith16-384',
-        encoder_type='video',
-        encoder_path='./model_zoo/VJEPA/jepa_vith16-384',
-        processor_path='./model_zoo/VJEPA/jepa_vith16-384',
-    )
-    add_encoder(vjepa_h_p16_384)
-
-    vjepa_h_p16_224 = Encoder(
-        encoder_name='vjepa_vith16',
-        encoder_type='video',
-        encoder_path='./model_zoo/VJEPA/jepa_vith16.pth.tar',
-        processor_path='./model_zoo/VJEPA/jepa_vith16',
-    )
-    add_encoder(vjepa_h_p16_224)
-
-    vjepa_l_p16_224 = Encoder(
-        encoder_name='vjepa_vitl16',
-        encoder_type='video',
-        encoder_path='./model_zoo/VJEPA/jepa_vitl16.pth.tar',
-        processor_path='./model_zoo/VJEPA/jepa_vitl16',
-    )
-    add_encoder(vjepa_l_p16_224)
-
-    languagebind_video = Encoder(
-        encoder_name='languagebind-video-v1_5',
-        encoder_type='video',
-        encoder_path='./model_zoo/LanguageBind/LanguageBind_Video_Encoder',
-        processor_path='./model_zoo/LanguageBind/LanguageBind_Video_Encoder',
-    )
-    add_encoder(languagebind_video)
-
-    internvideo2 = Encoder(
-        encoder_name='internvideo2',
-        encoder_type='video',
-        encoder_path='./model_zoo/InternVideo2-Stage2_1B-224p-f4',
-        processor_path='./model_zoo/InternVideo2-Stage2_1B-224p-f4',
-    )
-    add_encoder(internvideo2)
-
-    videomae_l = Encoder(
-        encoder_name='videomae-l',
-        encoder_type='video',
-        encoder_path='./model_zoo/VideoMAE/videomae-large',
-        processor_path='./model_zoo/VideoMAE/videomae-large',
-    )
-    add_encoder(videomae_l)
-
-    
