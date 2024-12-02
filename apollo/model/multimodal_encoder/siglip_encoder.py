@@ -1,7 +1,7 @@
 
 from transformers import SiglipImageProcessor, SiglipVisionConfig, PretrainedConfig
 from transformers.models.siglip.modeling_siglip import SiglipVisionModel
-from .vision_encoder import VisionTower, VisionTowerS2
+from .vision_encoder import VisionTower
 import torch
 
 class SiglipVisionTower(VisionTower):
