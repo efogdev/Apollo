@@ -66,6 +66,7 @@ plum_color = gr.themes.colors.Color(
 
 
 model_path = snapshot_download("Apollo-LMMs/Apollo-3B-chatty", repo_type="model")
+data_path = snapshot_download("Apollo-LMMs/examples", repo_type="dataset")
 
 class Chat:
     def __init__(self):
@@ -325,15 +326,15 @@ with gr.Blocks(title='Apollo-3B', theme=theme, css=block_css) as demo:
             gr.Examples(
                 examples=[
                     [
-                        f"./{model_path}/data/example1.mp4",
+                        f"./{data_path}/example1.mp4",
                         "At what time in the video is Peter Thompson interviewed? Respond in seconds, and describe what he is wearing.",
                     ],
                     [
-                        f"./{model_path}/data/example2.mp4",
+                        f"./{data_path}/example2.mp4",
                         "What watch brands appear in the video?",
                     ],
                     [
-                        f"./{model_path}/data/example3.mp4",
+                        f"./{data_path}/example3.mp4",
                         "What are the two people discussing?",
                     ],
                 ],
