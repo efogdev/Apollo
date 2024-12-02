@@ -65,11 +65,13 @@ plum_color = gr.themes.colors.Color(
 )
 
 
+model_path = snapshot_download("Apollo-LMMs/Apollo-3B-chatty", repo_type="model")
+
 class Chat:
     def __init__(self):
         self.version = "qwen_1_5"
         model_name = "apollo"
-        model_path = snapshot_download("Apollo-LMMs/Apollo-3B-chatty", repo_type="model")
+        
         
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model_name = get_model_name_from_path(model_path)
@@ -323,15 +325,15 @@ with gr.Blocks(title='Apollo-3B', theme=theme, css=block_css) as demo:
             gr.Examples(
                 examples=[
                     [
-                        f"./data/example1.mp4",
+                        f"./{model_path}/data/example1.mp4",
                         "At what time in the video is Peter Thompson interviewed? Respond in seconds, and describe what he is wearing.",
                     ],
                     [
-                        f"./data/example2.mp4",
+                        f"./{model_path}/data/example2.mp4",
                         "What watch brands appear in the video?",
                     ],
                     [
-                        f"./data/example3.mp4",
+                        f"./{model_path}/data/example3.mp4",
                         "What are the two people discussing?",
                     ],
                 ],
