@@ -8,8 +8,6 @@ tokenizers==0.19.1
 sentencepiece==0.1.99
 shortuuid
 accelerate==0.33.0
-peft==0.4.0
-bitsandbytes==0.41.0
 pydantic<2,>=1
 markdown2
 scikit-learn==1.2.2
