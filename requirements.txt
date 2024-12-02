@@ -32,4 +32,4 @@ ipdb
 opencv-python
 s2wrapper@git+https://github.com/bfshi/scaling_on_scales
 easydict
-flash-attn --no-build-isolation --no-cache-dir
+flash-attn
