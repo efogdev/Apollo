@@ -1,0 +1,17 @@
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore virtual environments (if applicable)
+venv/
+env/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Add any other specific files/directories to ignore
+
