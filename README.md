@@ -1,6 +1,6 @@
 ---
 title: Apollo 3B
-emoji: 🦙
+emoji: 🌞
 colorFrom: blue
 colorTo: gray
 sdk: gradio
