@@ -388,4 +388,4 @@ with gr.Blocks(title='Apollo-3B', theme=theme, css=block_css) as demo:
         [message, chatbot],
         [image, video, message, chatbot, textbox])
 
-demo.launch(share=True)
+demo.launch()
