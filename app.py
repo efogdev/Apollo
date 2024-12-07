@@ -28,6 +28,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModel
 import gradio as gr
 import zipfile
 
+import subprocess
+subprocess.run('pip install flash-attn --no-build-isolation', env={'FLASH_ATTENTION_SKIP_CUDA_BUILD': "TRUE"}, shell=True)
 
 title_markdown = """
 <div style="display: flex; justify-content: center; align-items: center; text-align: center;">
