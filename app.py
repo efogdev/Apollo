@@ -73,11 +73,11 @@ model_path = snapshot_download("Apollo-LMMs/Apollo-3B-chatty", repo_type="model"
 source_path = model_path + '/data.zip'
  
 with zipfile.ZipFile(source_path, 'r') as zip_ref:
-    zip_ref.extractall(model_path)
+    zip_ref.extractall('./tmp')
 
 
 
-destination_path = model_path + '/data'
+destination_path =  './tmp/data'
 
 
 class Chat:
