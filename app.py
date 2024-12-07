@@ -65,6 +65,8 @@ plum_color = gr.themes.colors.Color(
     c950='#662647',
 )
 
+token = os.getenv("HUGGINGFACE_API_KEY")
+
 model_path = snapshot_download("Apollo-LMMs/Apollo-3B-chatty", repo_type="model", use_auth_token=token)
 source_path = model_path + '/data.zip'
  
