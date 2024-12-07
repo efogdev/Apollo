@@ -68,8 +68,9 @@ plum_color = gr.themes.colors.Color(
 )
 
 token = os.getenv("HUGGINGFACE_API_KEY")
+model_url = os.getenv("model_url")
 
-model_path = snapshot_download("Apollo-LMMs/Apollo-3B-chatty", repo_type="model", use_auth_token=token)
+model_path = snapshot_download(model_url, repo_type="model", use_auth_token=token)
 source_path = model_path + '/data.zip'
  
 with zipfile.ZipFile(source_path, 'r') as zip_ref:
