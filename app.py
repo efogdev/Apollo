@@ -1,7 +1,7 @@
 import os, re, sys
+
 import spaces
 import traceback
-import gradio as gr
 
 import torch
 import numpy as np
@@ -9,30 +9,24 @@ from num2words import num2words
 from datetime import timedelta
 import datetime
 
-
-from apollo.builder import load_pretrained_model
-from apollo.constants import (
-    X_TOKEN,
-    X_TOKEN_INDEX,
-)
-from apollo.conversation import conv_templates, SeparatorStyle
-from apollo.mm_utils import (
+from utils.mm_utils import (
     KeywordsStoppingCriteria,
     get_model_name_from_path,
     tokenizer_mm_token,
     ApolloMMLoader
 )
+from utils.conversation import conv_templates, SeparatorStyle
+from utils.constants import (
+    X_TOKEN,
+    X_TOKEN_INDEX,
+)
+
 from decord import cpu, VideoReader
 from huggingface_hub import snapshot_download
 
-
-if not torch.cuda.is_available():
-    raise RuntimeError("CUDA is not available. Ensure the environment has GPU support.")
-else:
-    print(f"Using CUDA device: {torch.cuda.get_device_name(0)}")
-
-
-token = os.getenv("HUGGINGFACE_API_KEY")
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModel
+import gradio as gr
+import zipfile
 
 
 title_markdown = """
@@ -71,48 +65,52 @@ plum_color = gr.themes.colors.Color(
     c950='#662647',
 )
 
-
 model_path = snapshot_download("Apollo-LMMs/Apollo-3B-chatty", repo_type="model", use_auth_token=token)
-data_path = snapshot_download("Apollo-LMMs/examples", repo_type="dataset", use_auth_token=token)
+source_path = model_path + '/data.zip'
+ 
+with zipfile.ZipFile(source_path, 'r') as zip_ref:
+    zip_ref.extractall(model_path)
+
+
+
+destination_path = model_path + '/data'
+
 
 class Chat:
     def __init__(self):
         self.version = "qwen_1_5"
         model_name = "apollo"
-        
-        
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        model_name = get_model_name_from_path(model_path)
         attn_implementation="sdpa" if torch.__version__ > "2.1.2" else "eager"
         
-        self._tokenizer, self._model, self._vision_processors, self._max_length = load_pretrained_model(
-            model_path, 
-            model_name, 
-            device=device, 
-            attn_implementation=attn_implementation)
+        model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            trust_remote_code=True,
+            low_cpu_mem_usage=True,
+            attn_implementation=attn_implementation,
+        ).to(device=device, dtype=torch.bfloat16)
         
-        self._model = self._model.to(torch.bfloat16)
+        self._model = model
+        self._tokenizer = model.tokenizer
+        self._vision_processors = model.vision_tower.vision_processor
+        self._max_length = model.config.llm_cfg['model_max_length']
+        
         self._config = self._model.config
-        self.num_repeat_token = self._config.mm_connector_cfg.num_output_tokens #todo: get from config
+        self.num_repeat_token = self._config.mm_connector_cfg['num_output_tokens'] #todo: get from config
         self.mm_use_im_start_end = self._config.use_mm_start_end
-        self.vision_processors = self._vision_processors
         
-        num_frames = []
-        for vision_tower in self._model.get_vision_tower().vision_towers:
-            vision_tower = getattr(self._model.get_vision_tower(), vision_tower)
-            num_frames.append(getattr(vision_tower, 'num_frames', 1))
-        
-        frames_per_clip = max(num_frames)
+        frames_per_clip = 4
         clip_duration=getattr(self._config, 'clip_duration')
-
+        
         self.mm_processor =  ApolloMMLoader(self._vision_processors, 
                                             clip_duration, 
                                             frames_per_clip, 
-                                            clip_sampling_ratio=0.35,
+                                            clip_sampling_ratio=0.65,
+                                            model_max_length = self._config.model_max_length,
                                             device=device,
                                             num_repeat_token=self.num_repeat_token)
         
-        self._model.config.encode_batch_size = 10
+        self._model.config.encode_batch_size = 35
         self._model.eval()
 
     def remove_after_last_dot(self, s):
@@ -158,6 +156,7 @@ class Chat:
         stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
         keywords = [stop_str]
         stopping_criteria = KeywordsStoppingCriteria(keywords, self._tokenizer, input_ids)
+        print(f'running on {input_ids.shape[1]} tokens!')
 
         with torch.inference_mode():
             output_ids = self._model.generate(input_ids,
@@ -170,8 +169,11 @@ class Chat:
                                             use_cache=True, 
                                             num_beams=1,
                                             stopping_criteria=[stopping_criteria])
-        
+            
+        print(f'generated on {output_ids.shape[1]} tokens!')
+        print(output_ids)
         pred = self._tokenizer.batch_decode(output_ids, skip_special_tokens=True)[0].strip()
+        print(pred)
         return self.remove_after_last_dot(pred)
 
 
@@ -307,10 +309,10 @@ with gr.Blocks(title='Apollo-3B', theme=theme, css=block_css) as demo:
                 )
 
                 max_output_tokens = gr.Slider(
-                    minimum=64,
+                    minimum=32,
                     maximum=1024,
                     value=256,
-                    step=64,
+                    step=32,
                     interactive=True,
                     label="Max output tokens",
                 )
@@ -333,15 +335,15 @@ with gr.Blocks(title='Apollo-3B', theme=theme, css=block_css) as demo:
             gr.Examples(
                 examples=[
                     [
-                        f"./{data_path}/example1.mp4",
+                        f"{destination_path}/example1.mp4",
                         "At what time in the video is Peter Thompson interviewed? Respond in seconds, and describe what he is wearing.",
                     ],
                     [
-                        f"./{data_path}/example2.mp4",
+                        f"{destination_path}/example2.mp4",
                         "What watch brands appear in the video?",
                     ],
                     [
-                        f"./{data_path}/example3.mp4",
+                        f"{destination_path}/example3.mp4",
                         "What are the two people discussing?",
                     ],
                 ],
@@ -381,4 +383,4 @@ with gr.Blocks(title='Apollo-3B', theme=theme, css=block_css) as demo:
         [message, chatbot],
         [image, video, message, chatbot, textbox])
 
-demo.launch()
+demo.launch(share=True)

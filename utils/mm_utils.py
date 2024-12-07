@@ -22,7 +22,7 @@ import os, math, cv2, re
 
 import torch
 from transformers import StoppingCriteria
-from apollo.constants import *
+from utils.constants import *
 
 import tempfile
 from io import BytesIO
@@ -332,19 +332,20 @@ def load_video(video_file, vision_processors, clip_duration, frames_per_clip, cl
 
 
 class ApolloMMLoader:
-    def __init__(self, vision_processors, clip_duration, frames_per_clip, num_repeat_token, device, clip_sampling_ratio=1, video_decode_backend="decord"):
+    def __init__(self, vision_processors, clip_duration, frames_per_clip, num_repeat_token, device, model_max_length = 32768, clip_sampling_ratio=1, video_decode_backend="decord"):
         self.vision_processors=vision_processors
         self.clip_duration=clip_duration
         self.device=device
         self.frames_per_clip=frames_per_clip
         self.num_repeat_token = num_repeat_token
         self.clip_sampling_ratio=clip_sampling_ratio
+        self.model_max_length=model_max_length
         self.video_decode_backend=video_decode_backend
         self.vidprompt = lambda num_clips, video_duration : f"You are provided the following series of {num2words(num_clips)}, {self.clip_duration} second clips from a {datetime.timedelta(seconds=video_duration)} [H:MM:SS] video.\n"
     
     def load_video(self, video_file):
         total_frames, original_fps, video_duration = get_video_details(video_file)
-        clip_sampling_ratio = min(1, (32768 * self.clip_sampling_ratio) / (video_duration  * self.num_repeat_token / self.clip_duration))
+        clip_sampling_ratio = min(1, (self.model_max_length * self.clip_sampling_ratio) / (video_duration  * self.num_repeat_token / self.clip_duration))
         
         _, all_indices, timestamps = calculate_sample_indices(self.clip_duration, self.frames_per_clip, total_frames, original_fps, video_duration, clip_sampling_ratio=clip_sampling_ratio)
         video, timestamps = load_video(video_file, self.vision_processors, self.clip_duration, self.frames_per_clip, clip_sampling_ratio=clip_sampling_ratio, eval_=True)
@@ -355,7 +356,6 @@ class ApolloMMLoader:
         replace_string = self.vidprompt(num_clips, video_duration)
 
         temporal_prompt = [f"{round(clip[0], 1)}-{round(clip[1], 1)} seconds: {X_TOKEN['video'] * self.num_repeat_token}" for clip in timestamps]
-        #temporal_prompt = [f"{datetime.timedelta(round(clip[0], 1))}-{datetime.timedelta(round(clip[1], 1))} seconds: {X_TOKEN['video'] * self.num_repeat_token}" for clip in timestamps]
         temporal_prompt = ',\n'.join(temporal_prompt)
         replace_string = replace_string + temporal_prompt
         
