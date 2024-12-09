@@ -1,8 +1,8 @@
 ---
 title: Apollo 3B
 emoji: 🌞
-colorFrom: blue
-colorTo: gray
+colorFrom: indigo
+colorTo: yellow
 sdk: gradio
 sdk_version: 5.7.1
 app_file: app.py
