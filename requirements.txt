@@ -1,5 +1,4 @@
-huggingface_hub==0.25.1
-torch===2.1.2
+torch===2.2.0
 ezcolorlog
 numpy
 torchvision

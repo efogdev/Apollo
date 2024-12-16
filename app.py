@@ -1,13 +1,13 @@
 import os, re, sys
-
 import spaces
 import traceback
-
+import shutil
 import torch
 import numpy as np
 from num2words import num2words
 from datetime import timedelta
 import datetime
+import subprocess
 
 from utils.mm_utils import (
     KeywordsStoppingCriteria,
@@ -15,6 +15,7 @@ from utils.mm_utils import (
     tokenizer_mm_token,
     ApolloMMLoader
 )
+
 from utils.conversation import conv_templates, SeparatorStyle
 from utils.constants import (
     X_TOKEN,
@@ -28,8 +29,10 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModel
 import gradio as gr
 import zipfile
 
-import subprocess
-subprocess.run('pip install flash-attn --no-build-isolation', env={'FLASH_ATTENTION_SKIP_CUDA_BUILD': "TRUE"}, shell=True)
+model_url = "Apollo-LMMs/Apollo-3B-t32"
+video_url="https://www.youtube.com/watch?v=9CznKnLqp7k"
+if not os.path.exists('example.mp4'):
+    subprocess.run([os.getenv('YT_DLP'), '-o', 'example.mp4', '--recode-video', 'mp4', video_url])
 
 title_markdown = """
 <div style="display: flex; justify-content: center; align-items: center; text-align: center;">
@@ -67,19 +70,10 @@ plum_color = gr.themes.colors.Color(
     c950='#662647',
 )
 
-token = os.getenv("HUGGINGFACE_API_KEY")
-model_url = os.getenv("model_url")
-
-model_path = snapshot_download(model_url, repo_type="model", use_auth_token=token)
-source_path = model_path + '/data.zip'
- 
-with zipfile.ZipFile(source_path, 'r') as zip_ref:
-    zip_ref.extractall('./tmp')
-
-
-
-destination_path =  './tmp/data'
-
+model_path = snapshot_download(model_url, repo_type="model")
+destination_path = './tmp/data'
+os.makedirs(destination_path, exist_ok=True)
+shutil.copytree(model_path, destination_path, dirs_exist_ok=True)
 
 class Chat:
     def __init__(self):
@@ -340,16 +334,8 @@ with gr.Blocks(title='Apollo-3B', theme=theme, css=block_css) as demo:
             gr.Examples(
                 examples=[
                     [
-                        f"{destination_path}/example1.mp4",
-                        "At what time in the video is Peter Thompson interviewed? Respond in seconds, and describe what he is wearing.",
-                    ],
-                    [
-                        f"{destination_path}/example2.mp4",
-                        "What watch brands appear in the video?",
-                    ],
-                    [
-                        f"{destination_path}/example3.mp4",
-                        "What are the two people discussing?",
+                        f"{destination_path}/../../example.mp4",
+                        "What brands appear in the video?",
                     ],
                 ],
                 inputs=[video, textbox],
