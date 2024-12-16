@@ -36,7 +36,7 @@ yt_dlp_bin = os.getenv('YT_DLP')
 if yt_dlp_bin == "":
     yt_dlp_bin = "yt-dlp"
 if not os.path.exists('example.mp4'):
-    subprocess.run([os.getenv('YT_DLP'), '-o', 'example.mp4', '--recode-video', 'mp4', video_url])
+    subprocess.run([yt_dlp_bin, '-o', 'example.mp4', '--recode-video', 'mp4', video_url])
 
 title_markdown = """
 <div style="display: flex; justify-content: center; align-items: center; text-align: center;">
