@@ -30,7 +30,11 @@ import gradio as gr
 import zipfile
 
 model_url = "Apollo-LMMs/Apollo-3B-t32"
-video_url="https://www.youtube.com/watch?v=9CznKnLqp7k"
+video_url = "https://www.youtube.com/watch?v=9CznKnLqp7k"
+
+yt_dlp_bin = os.getenv('YT_DLP')
+if yt_dlp_bin == "":
+    yt_dlp_bin = "yt-dlp"
 if not os.path.exists('example.mp4'):
     subprocess.run([os.getenv('YT_DLP'), '-o', 'example.mp4', '--recode-video', 'mp4', video_url])
 
